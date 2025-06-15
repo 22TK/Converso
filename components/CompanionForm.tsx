@@ -1,7 +1,8 @@
 "use client";
 
 import { z } from "zod";
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -25,6 +26,8 @@ import {
 } from "@/components/ui/select";
 import { subjects } from "@/constants";
 import Image from "next/image";
+import {redirect} from "next/navigation";
+import {createCompanion} from "@/lib/actions/companions.actions";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Companion name is required" }),
@@ -35,7 +38,13 @@ const formSchema = z.object({
   duration: z.coerce.number().min(2, { message: "Duration is required" }),
 });
 
-const CompanionForm = () => {
+interface CompanionFormProps {
+    userId: string;
+}
+
+const CompanionForm = ({ userId }: CompanionFormProps) => {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,8 +58,34 @@ const CompanionForm = () => {
   });
 
   // 2. Define a submit handler.
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Submitting form with values:', values);
+      const companion = await createCompanion({
+        ...values,
+        userId: userId
+      });
+
+      console.log('Companion created:', companion);
+      
+      if (companion?.id) {
+        // Use Next.js router for client-side navigation
+        router.push(`/companions/${companion.id}`); // Fixed route to use 'companions'
+        router.refresh(); // Ensure the page updates
+      } else {
+        throw new Error('No companion ID returned');
+      }
+    } catch (error) {
+      console.error('Failed to create companion:', error);
+      // Show error to user
+      alert(error instanceof Error ? error.message : 'Failed to create companion. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return (
     <Form {...form}>
@@ -191,10 +226,11 @@ const CompanionForm = () => {
         />
         <Button
           type="submit"
-          className="w-full text-white rounded-xl cursor-pointer px-[82px] py-[12px] flex items-center gap-2 font-bold"
+          disabled={isSubmitting}
+          className={`w-full text-white rounded-xl cursor-pointer px-[82px] py-[12px] flex items-center gap-2 font-bold ${isSubmitting ? 'opacity-70' : ''}`}
           style={{ backgroundColor: "#fe5933" }}
         >
-          Create Companion
+          {isSubmitting ? 'Creating...' : 'Create Companion'}
         </Button>
       </form>
     </Form>
