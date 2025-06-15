@@ -25,9 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { subjects } from "@/constants";
-import Image from "next/image";
-import {redirect} from "next/navigation";
-import {createCompanion} from "@/lib/actions/companions.actions";
+import { createCompanion } from "@/lib/actions/companions.actions";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Companion name is required" }),

@@ -22,13 +22,11 @@ export const createCompanion = async (formData: CreateCompanion) => {
     try {
         const supabase = createSupabaseClient();
         
-        // First, let's check the table structure
-        const { data: tableInfo, error: tableError } = await supabase
-            .from('information_schema.columns')
-            .select('column_name, data_type')
-            .eq('table_name', 'companions');
-            
-        console.log('Table structure:', tableInfo);
+        // Check the table structure (commented out as it's not critical for the operation)
+        // const { data: tableInfo } = await supabase
+        //     .from('information_schema.columns')
+        //     .select('column_name, data_type')
+        //     .eq('table_name', 'companions');
 
         // Prepare companion data with auto-generated UUID
         const newCompanion = {
